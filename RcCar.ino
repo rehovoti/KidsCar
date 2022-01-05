@@ -15,14 +15,22 @@
 //const unsigned char DIRECTION_PIN_MOTOR_RIGHT = 22;
 //const unsigned char PWM_PIN_MOTOR_RIGHT = 23;
 
-const unsigned char DIRECTION_PIN_MOTOR_LEFT = 22;
-const unsigned char PWM_PIN_MOTOR_LEFT = 23;
-const unsigned char DIRECTION_PIN_MOTOR_RIGHT = 19;
-const unsigned char PWM_PIN_MOTOR_RIGHT = 21;
-const unsigned char PWM_CHANNEL_LEFT = 0;
-const unsigned char PWM_CHANNEL_RIGHT = 1;
+//const unsigned char DIRECTION_PIN_MOTOR_LEFT = 22;
+//const unsigned char PWM_PIN_MOTOR_LEFT = 23;
+//const unsigned char DIRECTION_PIN_MOTOR_RIGHT = 19;
+//const unsigned char PWM_PIN_MOTOR_RIGHT = 21;
+//const unsigned char PWM_CHANNEL_LEFT = 0;
+//const unsigned char PWM_CHANNEL_RIGHT = 1;
 
 
+const unsigned char PIN_MOTOR_LEFT_1 = 22;
+const unsigned char PIN_MOTOR_LEFT_2 = 23;
+const unsigned char PIN_MOTOR_RIGHT_1 = 19;
+const unsigned char PIN_MOTOR_RIGHT_2 = 21;
+const unsigned char PWM_CHANNEL_LEFT_1 = 0;
+const unsigned char PWM_CHANNEL_LEFT_2 = 1;
+const unsigned char PWM_CHANNEL_RIGHT_1 = 2;
+const unsigned char PWM_CHANNEL_RIGHT_2 = 3;
 
 BluetoothSerial SerialBT;
 
@@ -35,16 +43,20 @@ void setup()
 {
   Serial.begin(115200);
   SerialBT.begin("OrensCar"); //Bluetooth device name
-  pinMode(DIRECTION_PIN_MOTOR_LEFT, OUTPUT);
-  pinMode(PWM_PIN_MOTOR_LEFT, OUTPUT);
-  pinMode(DIRECTION_PIN_MOTOR_RIGHT, OUTPUT);
-  pinMode(PWM_PIN_MOTOR_RIGHT, OUTPUT);
+  pinMode(PIN_MOTOR_LEFT_1, OUTPUT);
+  pinMode(PIN_MOTOR_LEFT_2, OUTPUT);
+  pinMode(PIN_MOTOR_RIGHT_1, OUTPUT);
+  pinMode(PIN_MOTOR_RIGHT_2, OUTPUT);
   // configure LED PWM functionalitites
   // ledcSetup(pwmChannel, freq, resolution);
-  ledcSetup(PWM_CHANNEL_LEFT, 30000, 8); // right motor
-  ledcSetup(PWM_CHANNEL_RIGHT, 30000, 8); // left motor
-  ledcAttachPin(PWM_PIN_MOTOR_LEFT, PWM_CHANNEL_LEFT);
-  ledcAttachPin(PWM_PIN_MOTOR_RIGHT, PWM_CHANNEL_RIGHT);
+  ledcSetup(PWM_CHANNEL_LEFT_1, 30000, 8); 
+  ledcSetup(PWM_CHANNEL_LEFT_2, 30000, 8); 
+  ledcSetup(PWM_CHANNEL_RIGHT_1, 30000, 8); 
+  ledcSetup(PWM_CHANNEL_RIGHT_2, 30000, 8); 
+  ledcAttachPin(PIN_MOTOR_LEFT_1, PWM_CHANNEL_LEFT_1);
+  ledcAttachPin(PIN_MOTOR_LEFT_2, PWM_CHANNEL_LEFT_2);
+  ledcAttachPin(PIN_MOTOR_RIGHT_1, PWM_CHANNEL_RIGHT_1);
+  ledcAttachPin(PIN_MOTOR_RIGHT_2, PWM_CHANNEL_RIGHT_2);
   Serial.println("The device started, now you can pair it with bluetooth!");
 }
 
@@ -102,36 +114,46 @@ int controlMovement(Joystick_reading& jr)
 
 void spinLeftMotor(short value)
 {
-  if(value < 0)
+  int direction_pin, pwm_channel;
+  if(value < 0) // reverse
   {
-    digitalWrite(DIRECTION_PIN_MOTOR_LEFT, LEFT_REVERSE);
+    ledcWrite(PWM_CHANNEL_LEFT_2, 0);
+    pwm_channel = PWM_CHANNEL_LEFT_1;
     value = -value;
     Serial.print("Left Reverse, ");
   }
   else
-    digitalWrite(DIRECTION_PIN_MOTOR_LEFT, LEFT_FORWARD);
+  {
+    ledcWrite(PWM_CHANNEL_LEFT_1, 0);
+    pwm_channel = PWM_CHANNEL_LEFT_2;
+  }
   if(value !=0 )
     value = map(value, 0, 255, 100, 255);
   Serial.print("Left value: ");
   Serial.println(value);
-  ledcWrite(PWM_CHANNEL_LEFT, value);
+  ledcWrite(pwm_channel, value);
 }
 
 void spinRightMotor(short value)
 {
-  if(value < 0)
+  int pwm_channel;
+  if(value < 0) // reverse
   {
-    digitalWrite(DIRECTION_PIN_MOTOR_RIGHT, RIGHT_REVERSE);
+    ledcWrite(PWM_CHANNEL_RIGHT_2, 0);
+    pwm_channel = PWM_CHANNEL_RIGHT_1;
     value = -value;
     Serial.print("Right Reverse, ");
   }
   else
-    digitalWrite(DIRECTION_PIN_MOTOR_RIGHT, RIGHT_FORWARD);
-  if(value !=0)
+  {
+    ledcWrite(PWM_CHANNEL_RIGHT_1, 0);
+    pwm_channel = PWM_CHANNEL_RIGHT_2;
+  }
+  if(value !=0 )
     value = map(value, 0, 255, 100, 255);
-    Serial.print("Right value: ");
-    Serial.println(value);
-  ledcWrite(PWM_CHANNEL_RIGHT, value);
+  Serial.print("Right value: ");
+  Serial.println(value);
+  ledcWrite(pwm_channel, value);
 }
 
 char readBT (Joystick_reading& jr)
